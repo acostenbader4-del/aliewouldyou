@@ -483,9 +483,9 @@
             background: white;
             border-radius: 24px;
             padding: 40px;
-            max-width: 500px;
+            max-width: 900px;
             width: 90%;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             animation: modalSlideUp 0.4s ease-out;
@@ -1065,6 +1065,38 @@
         let currentPlayer = null;
         let isHost = false;
         let currentChoice = null;
+        let usedQuestions = [];
+        let usedCharacters = [];
+
+        // Helper function to get random unused question
+        function getRandomQuestion() {
+            // If all questions used, reset the pool
+            if (usedQuestions.length >= questions.length) {
+                usedQuestions = [];
+            }
+            
+            // Get available questions
+            const availableQuestions = questions.filter(q => !usedQuestions.includes(q));
+            const randomQuestion = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+            usedQuestions.push(randomQuestion);
+            
+            return randomQuestion;
+        }
+
+        // Helper function to get random unused character
+        function getRandomCharacter() {
+            // If all characters used, reset the pool
+            if (usedCharacters.length >= characters.length) {
+                usedCharacters = [];
+            }
+            
+            // Get available characters
+            const availableCharacters = characters.filter(c => !usedCharacters.includes(c));
+            const randomCharacter = availableCharacters[Math.floor(Math.random() * availableCharacters.length)];
+            usedCharacters.push(randomCharacter);
+            
+            return randomCharacter;
+        }
 
         // Screen Navigation
         function showScreen(screenId) {
@@ -1114,7 +1146,9 @@
                     [currentPlayer.id]: { name: hostName, ready: false }
                 },
                 status: 'lobby',
-                createdAt: Date.now()
+                createdAt: Date.now(),
+                usedQuestions: [],
+                usedCharacters: []
             };
 
             await database.ref('rooms/' + roomCode).set(roomData);
@@ -1221,14 +1255,25 @@
                 return;
             }
 
-            const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
-            const randomCharacter = characters[Math.floor(Math.random() * characters.length)];
+            // Get room data to check used items
+            const roomRef = database.ref('rooms/' + currentRoom);
+            const roomSnapshot = await roomRef.once('value');
+            const roomData = roomSnapshot.val();
+            
+            // Load used questions and characters from Firebase
+            usedQuestions = roomData.usedQuestions || [];
+            usedCharacters = roomData.usedCharacters || [];
+
+            const randomQuestion = getRandomQuestion();
+            const randomCharacter = getRandomCharacter();
 
             await database.ref('rooms/' + currentRoom).update({
                 status: 'playing',
                 currentQuestion: randomQuestion,
                 currentCharacter: randomCharacter,
-                round: 1
+                round: 1,
+                usedQuestions: usedQuestions,
+                usedCharacters: usedCharacters
             });
 
             // Clear previous choices
@@ -1361,8 +1406,17 @@
 
         // Next Round
         async function nextRound() {
-            const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
-            const randomCharacter = characters[Math.floor(Math.random() * characters.length)];
+            // Get room data to check used items
+            const roomRef = database.ref('rooms/' + currentRoom);
+            const roomSnapshot = await roomRef.once('value');
+            const roomData = roomSnapshot.val();
+            
+            // Load used questions and characters from Firebase
+            usedQuestions = roomData.usedQuestions || [];
+            usedCharacters = roomData.usedCharacters || [];
+
+            const randomQuestion = getRandomQuestion();
+            const randomCharacter = getRandomCharacter();
 
             const playersRef = database.ref('rooms/' + currentRoom + '/players');
             const snapshot = await playersRef.once('value');
@@ -1378,7 +1432,9 @@
             await database.ref('rooms/' + currentRoom).update({
                 status: 'playing',
                 currentQuestion: randomQuestion,
-                currentCharacter: randomCharacter
+                currentCharacter: randomCharacter,
+                usedQuestions: usedQuestions,
+                usedCharacters: usedCharacters
             });
 
             showScreen('gameScreen');
@@ -1415,9 +1471,15 @@
             modal.classList.add('active');
             
             const container = document.getElementById('characterImageInputs');
+            container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-medium);">Loading characters...</div>';
+
+            // Small delay to show modal immediately
+            await new Promise(resolve => setTimeout(resolve, 10));
+
             container.innerHTML = '';
 
-            for (const character of characters) {
+            for (let i = 0; i < characters.length; i++) {
+                const character = characters[i];
                 const characterImagesRef = database.ref('characterImages/' + character);
                 const snapshot = await characterImagesRef.once('value');
                 const existingImage = snapshot.val();
@@ -1427,7 +1489,7 @@
                 
                 const previewContainer = document.createElement('div');
                 previewContainer.className = 'preview-container';
-                previewContainer.id = `preview-${character.replace(/[^a-zA-Z0-9]/g, '')}`;
+                previewContainer.id = `preview-${character.replace(/[^a-zA-Z0-9]/g, '')}-${i}`;
                 
                 if (existingImage) {
                     const img = document.createElement('img');
@@ -1457,8 +1519,10 @@
                 input.type = 'text';
                 input.placeholder = 'Paste image URL';
                 input.value = existingImage || '';
+                input.dataset.character = character;
+                input.dataset.index = i;
                 input.onchange = function() {
-                    saveCharacterImage(character, this.value);
+                    saveCharacterImage(this.dataset.character, this.value, this.dataset.index);
                 };
                 itemDiv.appendChild(input);
                 
@@ -1470,9 +1534,9 @@
             document.getElementById('characterModal').classList.remove('active');
         }
 
-        async function saveCharacterImage(characterName, imageUrl) {
+        async function saveCharacterImage(characterName, imageUrl, index) {
             const cleanName = characterName.replace(/[^a-zA-Z0-9]/g, '');
-            const previewContainer = document.getElementById(`preview-${cleanName}`);
+            const previewContainer = document.getElementById(`preview-${cleanName}-${index}`);
             
             if (imageUrl) {
                 // Test if image loads
