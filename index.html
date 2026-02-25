@@ -534,28 +534,89 @@
             transform: rotate(90deg);
         }
         
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
         .character-list-item {
             display: flex;
-            gap: 16px;
-            align-items: center;
+            flex-direction: column;
             padding: 16px;
             background: var(--pink-pale);
+            border-radius: 16px;
+            border: 2px solid var(--pink-soft);
+            transition: all 0.3s ease;
+        }
+        
+        .character-list-item:hover {
+            border-color: var(--pink-bright);
+            box-shadow: 0 4px 16px var(--shadow);
+        }
+        
+        .character-list-item .preview-container {
+            width: 100%;
+            height: 140px;
+            background: white;
             border-radius: 12px;
             margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid var(--pink-soft);
+            position: relative;
+        }
+        
+        .character-list-item .preview-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+        
+        .character-list-item .preview-placeholder {
+            color: var(--text-medium);
+            font-size: 48px;
+        }
+        
+        .character-list-item .upload-status {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #00ff88;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
         
         .character-list-item input {
-            flex: 1;
-            padding: 12px;
+            width: 100%;
+            padding: 10px;
             border: 2px solid var(--pink-soft);
             border-radius: 8px;
             font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .character-list-item input:focus {
+            outline: none;
+            border-color: var(--pink-bright);
         }
         
         .character-list-item .name {
             font-weight: 600;
             color: var(--text-dark);
-            min-width: 150px;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 8px;
         }
         
         .waiting-text {
@@ -698,7 +759,7 @@
                 <h2>Manage Characters</h2>
                 <button class="close-button" onclick="closeCharacterModal()">×</button>
             </div>
-            <div id="characterImageInputs"></div>
+            <div class="character-grid" id="characterImageInputs"></div>
         </div>
     </div>
     
@@ -768,7 +829,67 @@
             "Would you let this person write your dating profile?",
             "Would you trust this person to keep your diary safe?",
             "Would you let this person DJ your party?",
-            "Would you trust this person in a trivia competition?"
+            "Would you trust this person in a trivia competition?",
+            "Would you trust this person with your biggest insecurity?",
+            "Would you let this person be your roommate?",
+            "Would you trust this person to feed your pet while you're away?",
+            "Would you let this person drive the getaway car?",
+            "Would you go to a music festival with this person?",
+            "Would you trust this person to delete your search history if you died?",
+            "Would you let this person choose your next haircut?",
+            "Would you trust this person to negotiate a raise for you?",
+            "Would you let this person be your emergency contact?",
+            "Would you go to Vegas with this person?",
+            "Would you trust this person with your credit card?",
+            "Would you let this person write your eulogy?",
+            "Would you trust this person to keep you motivated?",
+            "Would you let this person teach you to drive?",
+            "Would you go ghost hunting with this person?",
+            "Would you trust this person to remember your allergies?",
+            "Would you let this person pick your college major?",
+            "Would you trust this person in a drinking contest?",
+            "Would you let this person do your makeup for a big event?",
+            "Would you trust this person to roast you at your wedding?",
+            "Would you go scuba diving with this person?",
+            "Would you trust this person to walk you home alone at night?",
+            "Would you let this person name your child?",
+            "Would you trust this person with the aux cord on a road trip?",
+            "Would you let this person be your wingperson at a bar?",
+            "Would you trust this person to give you honest fashion advice?",
+            "Would you let this person choose your next tattoo?",
+            "Would you go backpacking through Europe with this person?",
+            "Would you trust this person to help you move?",
+            "Would you let this person babysit your younger sibling?",
+            "Would you trust this person in a bar fight?",
+            "Would you let this person give you a stick-and-poke tattoo?",
+            "Would you trust this person to keep you awake on a road trip?",
+            "Would you let this person run your Instagram for a day?",
+            "Would you trust this person to edit your resume?",
+            "Would you go to a haunted house with this person?",
+            "Would you trust this person to order food for you?",
+            "Would you let this person be your life coach?",
+            "Would you trust this person in a trust fall?",
+            "Would you let this person pick your next date?",
+            "Would you trust this person with your phone unlocked?",
+            "Would you let this person give you a piercing?",
+            "Would you go white water rafting with this person?",
+            "Would you trust this person to wake you up for something important?",
+            "Would you let this person decorate your apartment?",
+            "Would you trust this person to remember your drink order?",
+            "Would you let this person give you a surprise makeover?",
+            "Would you trust this person in an escape room?",
+            "Would you let this person help you draft a breakup text?",
+            "Would you trust this person to lie for you?",
+            "Would you let this person teach your parents how to use technology?",
+            "Would you trust this person to split the bill fairly?",
+            "Would you go shark diving with this person?",
+            "Would you trust this person to keep a wild night secret?",
+            "Would you let this person be your workout buddy?",
+            "Would you trust this person to give you a crash course before an exam?",
+            "Would you let this person choose your next book to read?",
+            "Would you trust this person with your embarrassing medical question?",
+            "Would you let this person be your plus-one at a wedding?",
+            "Would you trust this person to parallel park your car?"
         ];
 
         // Character Pool
@@ -822,7 +943,121 @@
             "Tiana (Princess and the Frog)",
             "The Doctor (Doctor Who)",
             "Avatar Aang",
-            "Moira Rose (Schitt's Creek)"
+            "Moira Rose (Schitt's Creek)",
+            "Chandler Bing (Friends)",
+            "Luke Skywalker",
+            "Scarlet Witch",
+            "Patrick Star",
+            "Catwoman",
+            "Aragorn (Lord of the Rings)",
+            "Buzz Lightyear",
+            "Harley Quinn",
+            "Geralt of Rivia (The Witcher)",
+            "Yoda",
+            "Jessica Rabbit",
+            "Iron Giant",
+            "Wolverine",
+            "Marge Simpson",
+            "Gamora",
+            "Sailor Moon",
+            "Gandalf",
+            "Pocahontas",
+            "Master Chief (Halo)",
+            "Gru (Despicable Me)",
+            "Vision",
+            "Finn (Adventure Time)",
+            "Legolas",
+            "Princess Peach",
+            "Godzilla",
+            "Luna Lovegood",
+            "Frodo Baggins",
+            "Sonic the Hedgehog",
+            "Draco Malfoy",
+            "Thanos",
+            "Luffy (One Piece)",
+            "Scar (The Lion King)",
+            "Elastigirl",
+            "Edward Scissorhands",
+            "Megamind",
+            "Indiana Jones",
+            "Speed Racer",
+            "Garfield",
+            "Vegeta (Dragon Ball)",
+            "Donkey (Shrek)",
+            "Steve (Minecraft)",
+            "Aladdin",
+            "Jack Sparrow",
+            "Neo (The Matrix)",
+            "Marty McFly",
+            "Groot",
+            "Rocket Raccoon",
+            "Shaggy (Scooby-Doo)",
+            "Bugs Bunny",
+            "Tom (Tom and Jerry)",
+            "Jerry (Tom and Jerry)",
+            "Po (Kung Fu Panda)",
+            "Simba",
+            "Tarzan",
+            "Jasmine",
+            "Flynn Rider",
+            "Kristoff (Frozen)",
+            "Olaf",
+            "Baymax",
+            "Stitch",
+            "Tinker Bell",
+            "Peter Pan",
+            "Captain Hook",
+            "Cruella de Vil",
+            "Maleficent",
+            "Ursula",
+            "Gaston",
+            "Jafar",
+            "Shere Khan",
+            "Yzma (Emperor's New Groove)",
+            "Kuzco (Emperor's New Groove)",
+            "Linguini (Ratatouille)",
+            "Remy (Ratatouille)",
+            "WALL-E",
+            "EVE (WALL-E)",
+            "Joy (Inside Out)",
+            "Sadness (Inside Out)",
+            "Anger (Inside Out)",
+            "Miguel (Coco)",
+            "Hector (Coco)",
+            "Edna Mode",
+            "Syndrome",
+            "Frozone",
+            "Bob Parr (Mr. Incredible)",
+            "Dash Parr",
+            "Violet Parr",
+            "Roz (Monsters Inc)",
+            "Mike Wazowski",
+            "Sulley",
+            "Boo (Monsters Inc)",
+            "Randall (Monsters Inc)",
+            "Rex (Toy Story)",
+            "Hamm (Toy Story)",
+            "Slinky Dog",
+            "Woody",
+            "Jessie (Toy Story)",
+            "Bo Peep",
+            "Sid (Toy Story)",
+            "Lotso",
+            "Ken (Toy Story)",
+            "Barbie (Toy Story)",
+            "Puss in Boots",
+            "Fiona (Shrek)",
+            "Lord Farquaad",
+            "Rumpelstiltskin",
+            "Hiccup (How to Train Your Dragon)",
+            "Toothless",
+            "Astrid (How to Train Your Dragon)",
+            "Alex (Madagascar)",
+            "Marty (Madagascar)",
+            "Gloria (Madagascar)",
+            "Melman (Madagascar)",
+            "King Julien",
+            "Skipper (Madagascar)"
         ];
 
         // Game State
@@ -1189,13 +1424,44 @@
 
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'character-list-item';
-                itemDiv.innerHTML = `
-                    <div class="name">${character}</div>
-                    <input type="text" 
-                           placeholder="Paste image URL" 
-                           value="${existingImage || ''}"
-                           onchange="saveCharacterImage('${character}', this.value)">
-                `;
+                
+                const previewContainer = document.createElement('div');
+                previewContainer.className = 'preview-container';
+                previewContainer.id = `preview-${character.replace(/[^a-zA-Z0-9]/g, '')}`;
+                
+                if (existingImage) {
+                    const img = document.createElement('img');
+                    img.src = existingImage;
+                    img.onerror = function() {
+                        this.parentElement.innerHTML = '<div class="preview-placeholder">?</div>';
+                    };
+                    previewContainer.appendChild(img);
+                    
+                    const uploadStatus = document.createElement('div');
+                    uploadStatus.className = 'upload-status';
+                    uploadStatus.textContent = '✓';
+                    uploadStatus.title = 'Image uploaded';
+                    previewContainer.appendChild(uploadStatus);
+                } else {
+                    previewContainer.innerHTML = '<div class="preview-placeholder">?</div>';
+                }
+                
+                itemDiv.appendChild(previewContainer);
+                
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'name';
+                nameDiv.textContent = character;
+                itemDiv.appendChild(nameDiv);
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = 'Paste image URL';
+                input.value = existingImage || '';
+                input.onchange = function() {
+                    saveCharacterImage(character, this.value);
+                };
+                itemDiv.appendChild(input);
+                
                 container.appendChild(itemDiv);
             }
         }
@@ -1205,10 +1471,42 @@
         }
 
         async function saveCharacterImage(characterName, imageUrl) {
+            const cleanName = characterName.replace(/[^a-zA-Z0-9]/g, '');
+            const previewContainer = document.getElementById(`preview-${cleanName}`);
+            
             if (imageUrl) {
-                await database.ref('characterImages/' + characterName).set(imageUrl);
+                // Test if image loads
+                const testImg = new Image();
+                testImg.onload = async function() {
+                    await database.ref('characterImages/' + characterName).set(imageUrl);
+                    
+                    // Update preview
+                    previewContainer.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    previewContainer.appendChild(img);
+                    
+                    const uploadStatus = document.createElement('div');
+                    uploadStatus.className = 'upload-status';
+                    uploadStatus.textContent = '✓';
+                    uploadStatus.title = 'Image uploaded successfully';
+                    previewContainer.appendChild(uploadStatus);
+                    
+                    // Briefly highlight the card
+                    const card = previewContainer.parentElement;
+                    card.style.border = '2px solid #00ff88';
+                    setTimeout(() => {
+                        card.style.border = '2px solid var(--pink-soft)';
+                    }, 1000);
+                };
+                testImg.onerror = function() {
+                    alert('Failed to load image. Please check the URL.');
+                    previewContainer.innerHTML = '<div class="preview-placeholder">❌</div>';
+                };
+                testImg.src = imageUrl;
             } else {
                 await database.ref('characterImages/' + characterName).remove();
+                previewContainer.innerHTML = '<div class="preview-placeholder">?</div>';
             }
         }
 
