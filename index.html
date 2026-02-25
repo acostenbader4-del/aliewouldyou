@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Would You? - Party Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Reenie+Beanie&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --pink-hot: #ff006e;
+            --pink-bright: #ff4d9c;
+            --pink-soft: #ffb3d9;
+            --pink-pale: #ffe4f2;
+            --pink-deep: #c7004e;
+            --cream: #fff8f0;
+            --shadow: rgba(255, 0, 110, 0.25);
+            --text-dark: #2d0a1f;
+            --text-medium: #6b4458;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, var(--pink-pale) 0%, var(--cream) 50%, var(--pink-soft) 100%);
+            min-height: 100vh;
+            color: var(--text-dark);
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 77, 156, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 110, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .firebase-banner {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--pink-hot);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 500;
+            box-shadow: 0 4px 20px var(--shadow);
+            animation: slideInRight 0.5s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+            z-index: 1000;
+            font-size: 14px;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateX(400px);
+            }
+        }
+        
+        .header {
+            text-align: center;
+            margin: 40px 0;
+            animation: floatIn 0.8s ease-out;
+        }
+        
+        @keyframes floatIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .header h1 {
+            font-family: 'Reenie Beanie', cursive;
+            font-size: 72px;
+            color: var(--pink-hot);
+            text-shadow: 3px 3px 0 var(--pink-soft);
+            margin-bottom: 10px;
+            transform: rotate(-2deg);
+        }
+        
+        .header p {
+            color: var(--text-medium);
+            font-size: 18px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 10px 40px var(--shadow);
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--pink-soft);
+            animation: scaleIn 0.5s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .button {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: 700;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'DM Sans', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .button span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .button-primary {
+            background: linear-gradient(135deg, var(--pink-hot) 0%, var(--pink-bright) 100%);
+            color: white;
+            box-shadow: 0 6px 24px var(--shadow);
+        }
+        
+        .button-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--shadow);
+        }
+        
+        .button-secondary {
+            background: var(--pink-pale);
+            color: var(--pink-deep);
+            border: 2px solid var(--pink-soft);
+            margin-top: 12px;
+        }
+        
+        .button-secondary:hover {
+            background: var(--pink-soft);
+            border-color: var(--pink-bright);
+        }
+        
+        .input-group {
+            margin-bottom: 24px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-medium);
+            font-weight: 500;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid var(--pink-soft);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--pink-bright);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(255, 77, 156, 0.1);
+        }
+        
+        .room-code-display {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, var(--pink-hot), var(--pink-bright));
+            border-radius: 20px;
+            margin: 30px 0;
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+        
+        .room-code-display .code {
+            font-size: 48px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 8px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin: 10px 0;
+        }
+        
+        .room-code-display .label {
+            color: var(--pink-pale);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+        
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        #qrcode canvas {
+            border-radius: 8px;
+        }
+        
+        .question-card {
+            background: var(--pink-hot);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 30px 0;
+            box-shadow: 0 10px 40px var(--shadow);
+            animation: questionPulse 0.6s ease-out;
+        }
+        
+        @keyframes questionPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        .question-card h2 {
+            font-size: 28px;
+            line-height: 1.4;
+            font-weight: 700;
+        }
+        
+        .character-card {
+            background: white;
+            border: 3px solid var(--pink-soft);
+            border-radius: 20px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            animation: slideUp 0.4s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .character-card img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid var(--pink-bright);
+            margin-bottom: 16px;
+        }
+        
+        .character-card h3 {
+            font-size: 24px;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+        }
+        
+        .choice-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .choice-button {
+            padding: 16px;
+            border: 2px solid;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+        
+        .choice-hard-yes {
+            background: #00ff88;
+            border-color: #00cc6a;
+            color: #004d28;
+        }
+        
+        .choice-hard-yes:hover { transform: scale(1.02); background: #00ff99; }
+        
+        .choice-yes {
+            background: #b3ff99;
+            border-color: #88dd66;
+            color: #2d5016;
+        }
+        
+        .choice-yes:hover { transform: scale(1.02); background: #c2ffaa; }
+        
+        .choice-indifferent {
+            background: #ffeb99;
+            border-color: #ddcc66;
+            color: #665500;
+        }
+        
+        .choice-indifferent:hover { transform: scale(1.02); background: #fff5aa; }
+        
+        .choice-no {
+            background: #ffbb99;
+            border-color: #dd8866;
+            color: #662200;
+        }
+        
+        .choice-no:hover { transform: scale(1.02); background: #ffccaa; }
+        
+        .choice-hard-no {
+            background: #ff6b6b;
+            border-color: #dd4444;
+            color: #660000;
+        }
+        
+        .choice-hard-no:hover { transform: scale(1.02); background: #ff7777; }
+        
+        .choice-button.selected {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .player-list {
+            margin-top: 30px;
+        }
+        
+        .player-item {
+            background: var(--pink-pale);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid var(--pink-soft);
+        }
+        
+        .player-name {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .player-status {
+            font-size: 14px;
+            color: var(--text-medium);
+        }
+        
+        .results-grid {
+            display: grid;
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .result-item {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            border: 2px solid var(--pink-soft);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        }
+        
+        .result-player {
+            font-weight: 700;
+            color: var(--pink-hot);
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        
+        .result-choice {
+            font-size: 16px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: inline-block;
+            font-weight: 600;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(45, 10, 31, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideUp 0.4s ease-out;
+        }
+        
+        @keyframes modalSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .modal-header h2 {
+            color: var(--pink-hot);
+            font-size: 28px;
+        }
+        
+        .close-button {
+            background: var(--pink-pale);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            color: var(--pink-hot);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .close-button:hover {
+            background: var(--pink-soft);
+            transform: rotate(90deg);
+        }
+        
+        .character-list-item {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            padding: 16px;
+            background: var(--pink-pale);
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .character-list-item input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--pink-soft);
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+        }
+        
+        .character-list-item .name {
+            font-weight: 600;
+            color: var(--text-dark);
+            min-width: 150px;
+        }
+        
+        .waiting-text {
+            text-align: center;
+            color: var(--text-medium);
+            font-size: 18px;
+            margin: 20px 0;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .manage-characters-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--pink-hot), var(--pink-bright));
+            color: white;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 6px 24px var(--shadow);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        
+        .manage-characters-button:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="firebase-banner" id="firebaseBanner">Connected to Firebase ✓</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Would You?</h1>
+            <p>The ultimate party judgment game</p>
+        </div>
+        
+        <!-- Home Screen -->
+        <div id="homeScreen" class="card">
+            <button class="button button-primary" onclick="showCreateRoom()"><span>Create Room & Play</span></button>
+            <button class="button button-secondary" onclick="showJoinRoom()"><span>Join Existing Room</span></button>
+        </div>
+        
+        <!-- Create Room Screen -->
+        <div id="createRoomScreen" class="card hidden">
+            <h2 style="color: var(--pink-hot); margin-bottom: 24px; font-size: 28px;">Create Room</h2>
+            <div class="input-group">
+                <label>Your Name</label>
+                <input type="text" id="hostName" placeholder="Enter your name">
+            </div>
+            <button class="button button-primary" onclick="createRoom()"><span>Create Room</span></button>
+            <button class="button button-secondary" onclick="showHome()"><span>Back</span></button>
+        </div>
+        
+        <!-- Join Room Screen -->
+        <div id="joinRoomScreen" class="card hidden">
+            <h2 style="color: var(--pink-hot); margin-bottom: 24px; font-size: 28px;">Join Room</h2>
+            <div class="input-group">
+                <label>Your Name</label>
+                <input type="text" id="playerName" placeholder="Enter your name">
+            </div>
+            <div class="input-group">
+                <label>Room Code</label>
+                <input type="text" id="roomCodeInput" placeholder="Enter 6-digit code" maxlength="6">
+            </div>
+            <button class="button button-primary" onclick="joinRoom()"><span>Join Game</span></button>
+            <button class="button button-secondary" onclick="showHome()"><span>Back</span></button>
+        </div>
+        
+        <!-- Lobby Screen -->
+        <div id="lobbyScreen" class="card hidden">
+            <h2 style="color: var(--pink-hot); margin-bottom: 24px; font-size: 28px;">Lobby</h2>
+            <div class="room-code-display">
+                <div class="label">Room Code</div>
+                <div class="code" id="displayRoomCode"></div>
+            </div>
+            <div id="qrcode"></div>
+            <div class="player-list" id="playerList"></div>
+            <div id="hostControls" class="hidden">
+                <button class="button button-primary" onclick="startGame()"><span>Start Game</span></button>
+            </div>
+            <button class="button button-secondary" onclick="leaveRoom()"><span>Leave Room</span></button>
+        </div>
+        
+        <!-- Game Screen -->
+        <div id="gameScreen" class="card hidden">
+            <div class="question-card">
+                <h2 id="questionText"></h2>
+            </div>
+            <div class="character-card">
+                <img id="characterImage" src="" alt="Character">
+                <h3 id="characterName"></h3>
+                <div class="choice-buttons">
+                    <button class="choice-button choice-hard-yes" onclick="makeChoice('hard-yes')">HARD YES</button>
+                    <button class="choice-button choice-yes" onclick="makeChoice('yes')">Yes</button>
+                    <button class="choice-button choice-indifferent" onclick="makeChoice('indifferent')">Truly Indifferent</button>
+                    <button class="choice-button choice-no" onclick="makeChoice('no')">No</button>
+                    <button class="choice-button choice-hard-no" onclick="makeChoice('hard-no')">HARD NO</button>
+                </div>
+            </div>
+            <div class="waiting-text hidden" id="waitingText">Waiting for other players...</div>
+        </div>
+        
+        <!-- Results Screen -->
+        <div id="resultsScreen" class="card hidden">
+            <h2 style="color: var(--pink-hot); margin-bottom: 24px; font-size: 28px; text-align: center;">Results</h2>
+            <div class="character-card">
+                <img id="resultsCharacterImage" src="" alt="Character">
+                <h3 id="resultsCharacterName"></h3>
+            </div>
+            <div class="results-grid" id="resultsGrid"></div>
+            <div id="hostNextRound" class="hidden">
+                <button class="button button-primary" onclick="nextRound()"><span>Next Round</span></button>
+                <button class="button button-secondary" onclick="endGame()"><span>End Game</span></button>
+            </div>
+            <div id="playerWaiting" class="hidden">
+                <div class="waiting-text">Waiting for host to continue...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Character Management Modal -->
+    <div class="modal" id="characterModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Manage Characters</h2>
+                <button class="close-button" onclick="closeCharacterModal()">×</button>
+            </div>
+            <div id="characterImageInputs"></div>
+        </div>
+    </div>
+    
+    <button class="manage-characters-button" onclick="openCharacterModal()">⚙️</button>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfrvPKRbhh-xjETGyCAkrqJwea1N0YFA0",
+            authDomain: "wouldyou-61271.firebaseapp.com",
+            databaseURL: "https://wouldyou-61271-default-rtdb.firebaseio.com",
+            projectId: "wouldyou-61271",
+            storageBucket: "wouldyou-61271.firebasestorage.app",
+            messagingSenderId: "389428489709",
+            appId: "1:389428489709:web:1bec3a0168f3f6586ecbe4",
+            measurementId: "G-F811H9CKP1"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Hide banner after initialization
+        setTimeout(() => {
+            const banner = document.getElementById('firebaseBanner');
+            if (banner) banner.style.display = 'none';
+        }, 3000);
+
+        // Question Pool
+        const questions = [
+            "Would you trust this person with your drink at the club?",
+            "Would you let this person borrow your car for a week?",
+            "Would you go on a road trip with this person?",
+            "Would you let this person plan your birthday party?",
+            "Would you trust this person to hide a body?",
+            "Would you let this person cut your hair?",
+            "Would you trust this person as your wingman/wingwoman?",
+            "Would you let this person house-sit for you?",
+            "Would you trust this person with a secret?",
+            "Would you let this person pick your outfit for a date?",
+            "Would you go camping in the woods with this person?",
+            "Would you trust this person to make important life decisions for you?",
+            "Would you let this person tattoo you?",
+            "Would you survive a zombie apocalypse with this person?",
+            "Would you trust this person to bail you out of jail?",
+            "Would you let this person set you up on a blind date?",
+            "Would you trust this person as your lawyer?",
+            "Would you let this person cook Thanksgiving dinner?",
+            "Would you go skydiving with this person?",
+            "Would you trust this person to keep your plant alive?",
+            "Would you let this person manage your social media for a week?",
+            "Would you trust this person to watch your kids?",
+            "Would you go into business with this person?",
+            "Would you let this person choose your next job?",
+            "Would you trust this person in a zombie outbreak?",
+            "Would you let this person be your personal trainer?",
+            "Would you trust this person with your Netflix password?",
+            "Would you let this person give you relationship advice?",
+            "Would you trust this person to plan your wedding?",
+            "Would you let this person invest your money?",
+            "Would you go bungee jumping with this person?",
+            "Would you trust this person to keep a surprise party secret?",
+            "Would you let this person redesign your room?",
+            "Would you trust this person in a crisis?",
+            "Would you let this person choose your next vacation destination?",
+            "Would you trust this person to remember your birthday?",
+            "Would you let this person write your dating profile?",
+            "Would you trust this person to keep your diary safe?",
+            "Would you let this person DJ your party?",
+            "Would you trust this person in a trivia competition?"
+        ];
+
+        // Character Pool
+        const characters = [
+            "Tony Stark (Iron Man)",
+            "Hermione Granger (Harry Potter)",
+            "SpongeBob SquarePants",
+            "Batman",
+            "Elsa (Frozen)",
+            "Michael Scott (The Office)",
+            "Deadpool",
+            "Princess Leia",
+            "Homer Simpson",
+            "Wonder Woman",
+            "Shrek",
+            "Black Widow",
+            "Harry Potter",
+            "Dwight Schrute (The Office)",
+            "Captain America",
+            "Ariel (The Little Mermaid)",
+            "Walter White (Breaking Bad)",
+            "Mulan",
+            "Rick Sanchez (Rick and Morty)",
+            "Eleven (Stranger Things)",
+            "Thor",
+            "Katniss Everdeen (Hunger Games)",
+            "Peter Griffin (Family Guy)",
+            "Daenerys Targaryen (Game of Thrones)",
+            "Spider-Man (Peter Parker)",
+            "Loki",
+            "Ron Swanson (Parks and Recreation)",
+            "Moana",
+            "The Joker",
+            "Rey (Star Wars)",
+            "Bart Simpson",
+            "Jon Snow (Game of Thrones)",
+            "Leslie Knope (Parks and Recreation)",
+            "Doctor Strange",
+            "Rapunzel (Tangled)",
+            "Sheldon Cooper (Big Bang Theory)",
+            "Black Panther",
+            "Dory (Finding Nemo)",
+            "Goku (Dragon Ball)",
+            "Merida (Brave)",
+            "Han Solo",
+            "Buffy Summers (Buffy)",
+            "Naruto Uzumaki",
+            "Belle (Beauty and the Beast)",
+            "Sherlock Holmes",
+            "Ash Ketchum (Pokémon)",
+            "Tiana (Princess and the Frog)",
+            "The Doctor (Doctor Who)",
+            "Avatar Aang",
+            "Moira Rose (Schitt's Creek)"
+        ];
+
+        // Game State
+        let currentRoom = null;
+        let currentPlayer = null;
+        let isHost = false;
+        let currentChoice = null;
+
+        // Screen Navigation
+        function showScreen(screenId) {
+            document.querySelectorAll('.card').forEach(card => card.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function showHome() {
+            showScreen('homeScreen');
+            if (currentRoom) leaveRoom();
+        }
+
+        function showCreateRoom() {
+            showScreen('createRoomScreen');
+        }
+
+        function showJoinRoom() {
+            showScreen('joinRoomScreen');
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (code) {
+                document.getElementById('roomCodeInput').value = code;
+            }
+        }
+
+        // Generate Room Code
+        function generateRoomCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // Create Room
+        async function createRoom() {
+            const hostName = document.getElementById('hostName').value.trim();
+            if (!hostName) {
+                alert('Please enter your name');
+                return;
+            }
+
+            const roomCode = generateRoomCode();
+            currentRoom = roomCode;
+            currentPlayer = { id: Date.now().toString(), name: hostName };
+            isHost = true;
+
+            const roomData = {
+                host: currentPlayer.id,
+                players: {
+                    [currentPlayer.id]: { name: hostName, ready: false }
+                },
+                status: 'lobby',
+                createdAt: Date.now()
+            };
+
+            await database.ref('rooms/' + roomCode).set(roomData);
+            
+            document.getElementById('displayRoomCode').textContent = roomCode;
+            
+            // Generate QR Code
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            const url = window.location.origin + window.location.pathname + '?code=' + roomCode;
+            new QRCode(qrContainer, {
+                text: url,
+                width: 200,
+                height: 200,
+                colorDark: "#ff006e",
+                colorLight: "#ffffff"
+            });
+
+            showScreen('lobbyScreen');
+            document.getElementById('hostControls').classList.remove('hidden');
+            
+            // Listen for player changes
+            listenToLobby();
+        }
+
+        // Join Room
+        async function joinRoom() {
+            const playerName = document.getElementById('playerName').value.trim();
+            const roomCode = document.getElementById('roomCodeInput').value.trim();
+
+            if (!playerName || !roomCode) {
+                alert('Please enter your name and room code');
+                return;
+            }
+
+            const roomRef = database.ref('rooms/' + roomCode);
+            const snapshot = await roomRef.once('value');
+
+            if (!snapshot.exists()) {
+                alert('Room not found');
+                return;
+            }
+
+            currentRoom = roomCode;
+            currentPlayer = { id: Date.now().toString(), name: playerName };
+            isHost = false;
+
+            await database.ref('rooms/' + roomCode + '/players/' + currentPlayer.id).set({
+                name: playerName,
+                ready: false
+            });
+
+            document.getElementById('displayRoomCode').textContent = roomCode;
+            showScreen('lobbyScreen');
+            
+            listenToLobby();
+        }
+
+        // Listen to Lobby Updates
+        function listenToLobby() {
+            const playersRef = database.ref('rooms/' + currentRoom + '/players');
+            playersRef.on('value', (snapshot) => {
+                const players = snapshot.val();
+                updatePlayerList(players);
+            });
+
+            // Listen for game start
+            const statusRef = database.ref('rooms/' + currentRoom + '/status');
+            statusRef.on('value', (snapshot) => {
+                const status = snapshot.val();
+                if (status === 'playing') {
+                    showScreen('gameScreen');
+                    loadRound();
+                } else if (status === 'results') {
+                    showResults();
+                }
+            });
+        }
+
+        // Update Player List
+        function updatePlayerList(players) {
+            const listContainer = document.getElementById('playerList');
+            listContainer.innerHTML = '<h3 style="color: var(--pink-hot); margin-bottom: 16px;">Players</h3>';
+            
+            Object.entries(players).forEach(([id, player]) => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'player-item';
+                playerDiv.innerHTML = `
+                    <span class="player-name">${player.name}</span>
+                    <span class="player-status">${player.choice ? '✓ Answered' : 'Waiting...'}</span>
+                `;
+                listContainer.appendChild(playerDiv);
+            });
+        }
+
+        // Start Game
+        async function startGame() {
+            const playersRef = database.ref('rooms/' + currentRoom + '/players');
+            const snapshot = await playersRef.once('value');
+            const players = snapshot.val();
+
+            if (Object.keys(players).length < 2) {
+                alert('Need at least 2 players to start');
+                return;
+            }
+
+            const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+            const randomCharacter = characters[Math.floor(Math.random() * characters.length)];
+
+            await database.ref('rooms/' + currentRoom).update({
+                status: 'playing',
+                currentQuestion: randomQuestion,
+                currentCharacter: randomCharacter,
+                round: 1
+            });
+
+            // Clear previous choices
+            Object.keys(players).forEach(playerId => {
+                database.ref('rooms/' + currentRoom + '/players/' + playerId).update({
+                    choice: null
+                });
+            });
+        }
+
+        // Load Round
+        async function loadRound() {
+            const roomRef = database.ref('rooms/' + currentRoom);
+            const snapshot = await roomRef.once('value');
+            const roomData = snapshot.val();
+
+            document.getElementById('questionText').textContent = roomData.currentQuestion;
+            document.getElementById('characterName').textContent = roomData.currentCharacter;
+            
+            // Load character image from Firebase
+            const characterImagesRef = database.ref('characterImages/' + roomData.currentCharacter);
+            const imageSnapshot = await characterImagesRef.once('value');
+            const imageData = imageSnapshot.val();
+            
+            if (imageData) {
+                document.getElementById('characterImage').src = imageData;
+            } else {
+                document.getElementById('characterImage').src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><rect width="120" height="120" fill="%23ffb3d9"/><text x="60" y="60" font-size="40" text-anchor="middle" dy=".3em" fill="%23ff006e">?</text></svg>';
+            }
+
+            currentChoice = null;
+            document.querySelectorAll('.choice-button').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('waitingText').classList.add('hidden');
+
+            // Listen for all players to answer
+            listenForAllAnswers();
+        }
+
+        // Make Choice
+        async function makeChoice(choice) {
+            currentChoice = choice;
+            
+            // Update UI
+            document.querySelectorAll('.choice-button').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+
+            // Save to Firebase
+            await database.ref('rooms/' + currentRoom + '/players/' + currentPlayer.id).update({
+                choice: choice
+            });
+
+            document.getElementById('waitingText').classList.remove('hidden');
+        }
+
+        // Listen for All Answers
+        function listenForAllAnswers() {
+            const playersRef = database.ref('rooms/' + currentRoom + '/players');
+            playersRef.on('value', async (snapshot) => {
+                const players = snapshot.val();
+                const allAnswered = Object.values(players).every(p => p.choice);
+
+                if (allAnswered && isHost) {
+                    await database.ref('rooms/' + currentRoom).update({
+                        status: 'results'
+                    });
+                }
+            });
+        }
+
+        // Show Results
+        async function showResults() {
+            showScreen('resultsScreen');
+            
+            const roomRef = database.ref('rooms/' + currentRoom);
+            const snapshot = await roomRef.once('value');
+            const roomData = snapshot.val();
+
+            document.getElementById('resultsCharacterName').textContent = roomData.currentCharacter;
+            
+            // Load character image
+            const characterImagesRef = database.ref('characterImages/' + roomData.currentCharacter);
+            const imageSnapshot = await characterImagesRef.once('value');
+            const imageData = imageSnapshot.val();
+            
+            if (imageData) {
+                document.getElementById('resultsCharacterImage').src = imageData;
+            } else {
+                document.getElementById('resultsCharacterImage').src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><rect width="120" height="120" fill="%23ffb3d9"/><text x="60" y="60" font-size="40" text-anchor="middle" dy=".3em" fill="%23ff006e">?</text></svg>';
+            }
+
+            const resultsGrid = document.getElementById('resultsGrid');
+            resultsGrid.innerHTML = '';
+
+            const choiceColors = {
+                'hard-yes': '#00ff88',
+                'yes': '#b3ff99',
+                'indifferent': '#ffeb99',
+                'no': '#ffbb99',
+                'hard-no': '#ff6b6b'
+            };
+
+            const choiceLabels = {
+                'hard-yes': 'HARD YES',
+                'yes': 'Yes',
+                'indifferent': 'Truly Indifferent',
+                'no': 'No',
+                'hard-no': 'HARD NO'
+            };
+
+            Object.entries(roomData.players).forEach(([id, player]) => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result-item';
+                resultDiv.innerHTML = `
+                    <div class="result-player">${player.name}</div>
+                    <div class="result-choice" style="background: ${choiceColors[player.choice]}; color: #2d0a1f;">
+                        ${choiceLabels[player.choice]}
+                    </div>
+                `;
+                resultsGrid.appendChild(resultDiv);
+            });
+
+            if (isHost) {
+                document.getElementById('hostNextRound').classList.remove('hidden');
+                document.getElementById('playerWaiting').classList.add('hidden');
+            } else {
+                document.getElementById('hostNextRound').classList.add('hidden');
+                document.getElementById('playerWaiting').classList.remove('hidden');
+            }
+        }
+
+        // Next Round
+        async function nextRound() {
+            const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+            const randomCharacter = characters[Math.floor(Math.random() * characters.length)];
+
+            const playersRef = database.ref('rooms/' + currentRoom + '/players');
+            const snapshot = await playersRef.once('value');
+            const players = snapshot.val();
+
+            // Clear choices
+            Object.keys(players).forEach(playerId => {
+                database.ref('rooms/' + currentRoom + '/players/' + playerId).update({
+                    choice: null
+                });
+            });
+
+            await database.ref('rooms/' + currentRoom).update({
+                status: 'playing',
+                currentQuestion: randomQuestion,
+                currentCharacter: randomCharacter
+            });
+
+            showScreen('gameScreen');
+            loadRound();
+        }
+
+        // End Game
+        async function endGame() {
+            await database.ref('rooms/' + currentRoom).update({
+                status: 'lobby'
+            });
+            showScreen('lobbyScreen');
+        }
+
+        // Leave Room
+        async function leaveRoom() {
+            if (currentRoom && currentPlayer) {
+                await database.ref('rooms/' + currentRoom + '/players/' + currentPlayer.id).remove();
+                
+                if (isHost) {
+                    await database.ref('rooms/' + currentRoom).remove();
+                }
+            }
+            
+            currentRoom = null;
+            currentPlayer = null;
+            isHost = false;
+            showScreen('homeScreen');
+        }
+
+        // Character Management
+        async function openCharacterModal() {
+            const modal = document.getElementById('characterModal');
+            modal.classList.add('active');
+            
+            const container = document.getElementById('characterImageInputs');
+            container.innerHTML = '';
+
+            for (const character of characters) {
+                const characterImagesRef = database.ref('characterImages/' + character);
+                const snapshot = await characterImagesRef.once('value');
+                const existingImage = snapshot.val();
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'character-list-item';
+                itemDiv.innerHTML = `
+                    <div class="name">${character}</div>
+                    <input type="text" 
+                           placeholder="Paste image URL" 
+                           value="${existingImage || ''}"
+                           onchange="saveCharacterImage('${character}', this.value)">
+                `;
+                container.appendChild(itemDiv);
+            }
+        }
+
+        function closeCharacterModal() {
+            document.getElementById('characterModal').classList.remove('active');
+        }
+
+        async function saveCharacterImage(characterName, imageUrl) {
+            if (imageUrl) {
+                await database.ref('characterImages/' + characterName).set(imageUrl);
+            } else {
+                await database.ref('characterImages/' + characterName).remove();
+            }
+        }
+
+        // Close modal on outside click
+        document.getElementById('characterModal').addEventListener('click', (e) => {
+            if (e.target.id === 'characterModal') {
+                closeCharacterModal();
+            }
+        });
+
+        // Auto-fill room code from URL on page load
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (code) {
+                showJoinRoom();
+            }
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (currentRoom && currentPlayer) {
+                leaveRoom();
+            }
+        });
+    </script>
+</body>
+</html>
