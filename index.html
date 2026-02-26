@@ -558,6 +558,7 @@
         .add-character-form {
             display: flex;
             gap: 12px;
+            margin-bottom: 16px;
         }
         
         .add-character-form input {
@@ -589,6 +590,52 @@
         .add-character-form button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 16px var(--shadow);
+        }
+        
+        .bulk-import-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--pink-soft);
+        }
+        
+        .bulk-import-section h4 {
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .bulk-import-section textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--pink-soft);
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .bulk-import-section textarea:focus {
+            outline: none;
+            border-color: var(--pink-bright);
+        }
+        
+        .bulk-import-section button {
+            margin-top: 8px;
+            padding: 10px 20px;
+            background: var(--pink-bright);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'DM Sans', sans-serif;
+        }
+        
+        .bulk-import-section button:hover {
+            background: var(--pink-hot);
+            transform: translateY(-2px);
         }
         
         .character-list-item {
@@ -840,6 +887,11 @@
                 <div class="add-character-form">
                     <input type="text" id="newCharacterName" placeholder="Character name (e.g., Mario, Pikachu)">
                     <button onclick="addNewCharacter()">Add Character</button>
+                </div>
+                <div class="bulk-import-section">
+                    <h4>Bulk Import</h4>
+                    <textarea id="bulkImportText" placeholder="Paste character names here (one per line)&#10;Example:&#10;Mario&#10;Luigi&#10;Princess Peach"></textarea>
+                    <button onclick="bulkImportCharacters()">Import All</button>
                 </div>
             </div>
             <div class="character-grid" id="characterImageInputs"></div>
@@ -1594,14 +1646,61 @@
             // Clear input
             input.value = '';
             
-            // Refresh the modal
-            openCharacterModal();
+            // Refresh the modal while preserving scroll
+            await refreshCharacterGrid();
+        }
+        
+        async function bulkImportCharacters() {
+            const textarea = document.getElementById('bulkImportText');
+            const text = textarea.value.trim();
+            
+            if (!text) {
+                alert('Please enter character names (one per line)');
+                return;
+            }
+            
+            // Split by newlines and clean up
+            const newCharacters = text
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+            
+            if (newCharacters.length === 0) {
+                alert('No valid character names found');
+                return;
+            }
+            
+            // Filter out duplicates
+            const uniqueNew = newCharacters.filter(char => !characters.includes(char));
+            
+            if (uniqueNew.length === 0) {
+                alert('All characters already exist!');
+                return;
+            }
+            
+            // Add all new characters
+            characters.push(...uniqueNew);
+            
+            // Save to Firebase
+            await database.ref('characters').set(characters);
+            
+            // Clear textarea
+            textarea.value = '';
+            
+            alert(`Successfully added ${uniqueNew.length} character(s)!`);
+            
+            // Refresh the modal while preserving scroll
+            await refreshCharacterGrid();
         }
         
         async function deleteCharacter(characterName, index) {
             if (!confirm(`Are you sure you want to permanently delete "${characterName}"? This will also delete their image.`)) {
                 return;
             }
+            
+            // Save current scroll position
+            const modalContent = document.querySelector('.modal-content');
+            const scrollPosition = modalContent.scrollTop;
             
             // Remove from local array
             characters.splice(index, 1);
@@ -1613,22 +1712,17 @@
             await database.ref('characterImages/' + characterName).remove();
             
             // Refresh the modal
-            openCharacterModal();
+            await refreshCharacterGrid();
+            
+            // Restore scroll position
+            requestAnimationFrame(() => {
+                modalContent.scrollTop = scrollPosition;
+            });
         }
         
-        async function openCharacterModal() {
-            const modal = document.getElementById('characterModal');
-            modal.classList.add('active');
-            
+        async function refreshCharacterGrid() {
             const container = document.getElementById('characterImageInputs');
-            container.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-medium);">Loading ${characters.length} characters...</div>`;
-
-            // Small delay to show modal immediately
-            await new Promise(resolve => setTimeout(resolve, 10));
-
             container.innerHTML = '';
-
-            console.log('Total characters:', characters.length);
 
             for (let i = 0; i < characters.length; i++) {
                 const character = characters[i];
@@ -1680,7 +1774,7 @@
                     const previewContainer = document.getElementById(`preview-${i}`);
                     const input = document.querySelector(`input[data-index="${i}"]`);
                     
-                    if (existingImage && previewContainer) {
+                    if (existingImage && previewContainer && input) {
                         input.value = existingImage;
                         
                         const img = document.createElement('img');
@@ -1699,6 +1793,21 @@
                     }
                 });
             }
+        }
+        
+        async function openCharacterModal() {
+            const modal = document.getElementById('characterModal');
+            modal.classList.add('active');
+            
+            const container = document.getElementById('characterImageInputs');
+            container.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-medium);">Loading ${characters.length} characters...</div>`;
+
+            // Small delay to show modal immediately
+            await new Promise(resolve => setTimeout(resolve, 10));
+
+            console.log('Total characters:', characters.length);
+
+            await refreshCharacterGrid();
         }
 
         function closeCharacterModal() {
