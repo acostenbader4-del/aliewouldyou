@@ -1637,6 +1637,10 @@
                 return;
             }
             
+            // Save current scroll position
+            const modalContent = document.querySelector('.modal-content');
+            const scrollPosition = modalContent ? modalContent.scrollTop : 0;
+            
             // Add to local array
             characters.push(characterName);
             
@@ -1648,6 +1652,13 @@
             
             // Refresh the modal while preserving scroll
             await refreshCharacterGrid();
+            
+            // Restore scroll position
+            if (modalContent) {
+                requestAnimationFrame(() => {
+                    modalContent.scrollTop = scrollPosition;
+                });
+            }
         }
         
         async function bulkImportCharacters() {
@@ -1678,6 +1689,10 @@
                 return;
             }
             
+            // Save current scroll position
+            const modalContent = document.querySelector('.modal-content');
+            const scrollPosition = modalContent ? modalContent.scrollTop : 0;
+            
             // Add all new characters
             characters.push(...uniqueNew);
             
@@ -1691,6 +1706,13 @@
             
             // Refresh the modal while preserving scroll
             await refreshCharacterGrid();
+            
+            // Restore scroll position
+            if (modalContent) {
+                requestAnimationFrame(() => {
+                    modalContent.scrollTop = scrollPosition;
+                });
+            }
         }
         
         async function deleteCharacter(characterName, index) {
@@ -1817,10 +1839,19 @@
         async function saveCharacterImage(characterName, imageUrl, index) {
             const previewContainer = document.getElementById(`preview-${index}`);
             
+            if (!previewContainer) {
+                console.error('Preview container not found for index:', index);
+                return;
+            }
+            
             if (imageUrl) {
                 // Test if image loads
                 const testImg = new Image();
                 testImg.onload = async function() {
+                    // Save current scroll position
+                    const modalContent = document.querySelector('.modal-content');
+                    const scrollPosition = modalContent ? modalContent.scrollTop : 0;
+                    
                     await database.ref('characterImages/' + characterName).set(imageUrl);
                     
                     // Update preview
@@ -1841,6 +1872,11 @@
                     setTimeout(() => {
                         card.style.border = '2px solid var(--pink-soft)';
                     }, 1000);
+                    
+                    // Restore scroll position
+                    if (modalContent) {
+                        modalContent.scrollTop = scrollPosition;
+                    }
                 };
                 testImg.onerror = function() {
                     alert('Failed to load image. Please check the URL.');
