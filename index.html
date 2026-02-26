@@ -541,6 +541,56 @@
             margin-top: 20px;
         }
         
+        .add-character-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--pink-pale);
+            border-radius: 16px;
+            border: 2px dashed var(--pink-bright);
+        }
+        
+        .add-character-section h3 {
+            color: var(--pink-hot);
+            margin-bottom: 12px;
+            font-size: 20px;
+        }
+        
+        .add-character-form {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .add-character-form input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--pink-soft);
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+        }
+        
+        .add-character-form input:focus {
+            outline: none;
+            border-color: var(--pink-bright);
+        }
+        
+        .add-character-form button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--pink-hot), var(--pink-bright));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'DM Sans', sans-serif;
+        }
+        
+        .add-character-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px var(--shadow);
+        }
+        
         .character-list-item {
             display: flex;
             flex-direction: column;
@@ -549,11 +599,37 @@
             border-radius: 16px;
             border: 2px solid var(--pink-soft);
             transition: all 0.3s ease;
+            position: relative;
         }
         
         .character-list-item:hover {
             border-color: var(--pink-bright);
             box-shadow: 0 4px 16px var(--shadow);
+        }
+        
+        .delete-character-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .delete-character-btn:hover {
+            background: #ff5252;
+            transform: scale(1.1);
         }
         
         .character-list-item .preview-container {
@@ -759,6 +835,13 @@
                 <h2>Manage Characters</h2>
                 <button class="close-button" onclick="closeCharacterModal()">×</button>
             </div>
+            <div class="add-character-section">
+                <h3>Add New Character</h3>
+                <div class="add-character-form">
+                    <input type="text" id="newCharacterName" placeholder="Character name (e.g., Mario, Pikachu)">
+                    <button onclick="addNewCharacter()">Add Character</button>
+                </div>
+            </div>
             <div class="character-grid" id="characterImageInputs"></div>
         </div>
     </div>
@@ -892,173 +975,194 @@
             "Would you trust this person to parallel park your car?"
         ];
 
-        // Character Pool
-        const characters = [
-            "Tony Stark (Iron Man)",
-            "Hermione Granger (Harry Potter)",
-            "SpongeBob SquarePants",
-            "Batman",
-            "Elsa (Frozen)",
-            "Michael Scott (The Office)",
-            "Deadpool",
-            "Princess Leia",
-            "Homer Simpson",
-            "Wonder Woman",
-            "Shrek",
-            "Black Widow",
-            "Harry Potter",
-            "Dwight Schrute (The Office)",
-            "Captain America",
-            "Ariel (The Little Mermaid)",
-            "Walter White (Breaking Bad)",
-            "Mulan",
-            "Rick Sanchez (Rick and Morty)",
-            "Eleven (Stranger Things)",
-            "Thor",
-            "Katniss Everdeen (Hunger Games)",
-            "Peter Griffin (Family Guy)",
-            "Daenerys Targaryen (Game of Thrones)",
-            "Spider-Man (Peter Parker)",
-            "Loki",
-            "Ron Swanson (Parks and Recreation)",
-            "Moana",
-            "The Joker",
-            "Rey (Star Wars)",
-            "Bart Simpson",
-            "Jon Snow (Game of Thrones)",
-            "Leslie Knope (Parks and Recreation)",
-            "Doctor Strange",
-            "Rapunzel (Tangled)",
-            "Sheldon Cooper (Big Bang Theory)",
-            "Black Panther",
-            "Dory (Finding Nemo)",
-            "Goku (Dragon Ball)",
-            "Merida (Brave)",
-            "Han Solo",
-            "Buffy Summers (Buffy)",
-            "Naruto Uzumaki",
-            "Belle (Beauty and the Beast)",
-            "Sherlock Holmes",
-            "Ash Ketchum (Pokémon)",
-            "Tiana (Princess and the Frog)",
-            "The Doctor (Doctor Who)",
-            "Avatar Aang",
-            "Moira Rose (Schitt's Creek)",
-            "Chandler Bing (Friends)",
-            "Luke Skywalker",
-            "Scarlet Witch",
-            "Patrick Star",
-            "Catwoman",
-            "Aragorn (Lord of the Rings)",
-            "Buzz Lightyear",
-            "Harley Quinn",
-            "Geralt of Rivia (The Witcher)",
-            "Yoda",
-            "Jessica Rabbit",
-            "Iron Giant",
-            "Wolverine",
-            "Marge Simpson",
-            "Gamora",
-            "Sailor Moon",
-            "Gandalf",
-            "Pocahontas",
-            "Master Chief (Halo)",
-            "Gru (Despicable Me)",
-            "Vision",
-            "Finn (Adventure Time)",
-            "Legolas",
-            "Princess Peach",
-            "Godzilla",
-            "Luna Lovegood",
-            "Frodo Baggins",
-            "Sonic the Hedgehog",
-            "Draco Malfoy",
-            "Thanos",
-            "Luffy (One Piece)",
-            "Scar (The Lion King)",
-            "Elastigirl",
-            "Edward Scissorhands",
-            "Megamind",
-            "Indiana Jones",
-            "Speed Racer",
-            "Garfield",
-            "Vegeta (Dragon Ball)",
-            "Donkey (Shrek)",
-            "Steve (Minecraft)",
-            "Aladdin",
-            "Jack Sparrow",
-            "Neo (The Matrix)",
-            "Marty McFly",
-            "Groot",
-            "Rocket Raccoon",
-            "Shaggy (Scooby-Doo)",
-            "Bugs Bunny",
-            "Tom (Tom and Jerry)",
-            "Jerry (Tom and Jerry)",
-            "Po (Kung Fu Panda)",
-            "Simba",
-            "Tarzan",
-            "Jasmine",
-            "Flynn Rider",
-            "Kristoff (Frozen)",
-            "Olaf",
-            "Baymax",
-            "Stitch",
-            "Tinker Bell",
-            "Peter Pan",
-            "Captain Hook",
-            "Cruella de Vil",
-            "Maleficent",
-            "Ursula",
-            "Gaston",
-            "Jafar",
-            "Shere Khan",
-            "Yzma (Emperor's New Groove)",
-            "Kuzco (Emperor's New Groove)",
-            "Linguini (Ratatouille)",
-            "Remy (Ratatouille)",
-            "WALL-E",
-            "EVE (WALL-E)",
-            "Joy (Inside Out)",
-            "Sadness (Inside Out)",
-            "Anger (Inside Out)",
-            "Miguel (Coco)",
-            "Hector (Coco)",
-            "Edna Mode",
-            "Syndrome",
-            "Frozone",
-            "Bob Parr (Mr. Incredible)",
-            "Dash Parr",
-            "Violet Parr",
-            "Roz (Monsters Inc)",
-            "Mike Wazowski",
-            "Sulley",
-            "Boo (Monsters Inc)",
-            "Randall (Monsters Inc)",
-            "Rex (Toy Story)",
-            "Hamm (Toy Story)",
-            "Slinky Dog",
-            "Woody",
-            "Jessie (Toy Story)",
-            "Bo Peep",
-            "Sid (Toy Story)",
-            "Lotso",
-            "Ken (Toy Story)",
-            "Barbie (Toy Story)",
-            "Puss in Boots",
-            "Fiona (Shrek)",
-            "Lord Farquaad",
-            "Rumpelstiltskin",
-            "Hiccup (How to Train Your Dragon)",
-            "Toothless",
-            "Astrid (How to Train Your Dragon)",
-            "Alex (Madagascar)",
-            "Marty (Madagascar)",
-            "Gloria (Madagascar)",
-            "Melman (Madagascar)",
-            "King Julien",
-            "Skipper (Madagascar)"
-        ];
+        // Character Pool - will be loaded from Firebase
+        let characters = [];
+        
+        // Load characters from Firebase on startup
+        async function loadCharacters() {
+            const charactersRef = database.ref('characters');
+            const snapshot = await charactersRef.once('value');
+            const firebaseCharacters = snapshot.val();
+            
+            if (firebaseCharacters && Array.isArray(firebaseCharacters) && firebaseCharacters.length > 0) {
+                characters = firebaseCharacters;
+            } else {
+                // If no characters in Firebase, initialize with default list
+                characters = [
+                    "Tony Stark (Iron Man)",
+                    "Hermione Granger (Harry Potter)",
+                    "SpongeBob SquarePants",
+                    "Batman",
+                    "Elsa (Frozen)",
+                    "Michael Scott (The Office)",
+                    "Deadpool",
+                    "Princess Leia",
+                    "Homer Simpson",
+                    "Wonder Woman",
+                    "Shrek",
+                    "Black Widow",
+                    "Harry Potter",
+                    "Dwight Schrute (The Office)",
+                    "Captain America",
+                    "Ariel (The Little Mermaid)",
+                    "Walter White (Breaking Bad)",
+                    "Mulan",
+                    "Rick Sanchez (Rick and Morty)",
+                    "Eleven (Stranger Things)",
+                    "Thor",
+                    "Katniss Everdeen (Hunger Games)",
+                    "Peter Griffin (Family Guy)",
+                    "Daenerys Targaryen (Game of Thrones)",
+                    "Spider-Man (Peter Parker)",
+                    "Loki",
+                    "Ron Swanson (Parks and Recreation)",
+                    "Moana",
+                    "The Joker",
+                    "Rey (Star Wars)",
+                    "Bart Simpson",
+                    "Jon Snow (Game of Thrones)",
+                    "Leslie Knope (Parks and Recreation)",
+                    "Doctor Strange",
+                    "Rapunzel (Tangled)",
+                    "Sheldon Cooper (Big Bang Theory)",
+                    "Black Panther",
+                    "Dory (Finding Nemo)",
+                    "Goku (Dragon Ball)",
+                    "Merida (Brave)",
+                    "Han Solo",
+                    "Buffy Summers (Buffy)",
+                    "Naruto Uzumaki",
+                    "Belle (Beauty and the Beast)",
+                    "Sherlock Holmes",
+                    "Ash Ketchum (Pokémon)",
+                    "Tiana (Princess and the Frog)",
+                    "The Doctor (Doctor Who)",
+                    "Avatar Aang",
+                    "Moira Rose (Schitt's Creek)",
+                    "Chandler Bing (Friends)",
+                    "Luke Skywalker",
+                    "Scarlet Witch",
+                    "Patrick Star",
+                    "Catwoman",
+                    "Aragorn (Lord of the Rings)",
+                    "Buzz Lightyear",
+                    "Harley Quinn",
+                    "Geralt of Rivia (The Witcher)",
+                    "Yoda",
+                    "Jessica Rabbit",
+                    "Iron Giant",
+                    "Wolverine",
+                    "Marge Simpson",
+                    "Gamora",
+                    "Sailor Moon",
+                    "Gandalf",
+                    "Pocahontas",
+                    "Master Chief (Halo)",
+                    "Gru (Despicable Me)",
+                    "Vision",
+                    "Finn (Adventure Time)",
+                    "Legolas",
+                    "Princess Peach",
+                    "Godzilla",
+                    "Luna Lovegood",
+                    "Frodo Baggins",
+                    "Sonic the Hedgehog",
+                    "Draco Malfoy",
+                    "Thanos",
+                    "Luffy (One Piece)",
+                    "Scar (The Lion King)",
+                    "Elastigirl",
+                    "Edward Scissorhands",
+                    "Megamind",
+                    "Indiana Jones",
+                    "Speed Racer",
+                    "Garfield",
+                    "Vegeta (Dragon Ball)",
+                    "Donkey (Shrek)",
+                    "Steve (Minecraft)",
+                    "Aladdin",
+                    "Jack Sparrow",
+                    "Neo (The Matrix)",
+                    "Marty McFly",
+                    "Groot",
+                    "Rocket Raccoon",
+                    "Shaggy (Scooby-Doo)",
+                    "Bugs Bunny",
+                    "Tom (Tom and Jerry)",
+                    "Jerry (Tom and Jerry)",
+                    "Po (Kung Fu Panda)",
+                    "Simba",
+                    "Tarzan",
+                    "Jasmine",
+                    "Flynn Rider",
+                    "Kristoff (Frozen)",
+                    "Olaf",
+                    "Baymax",
+                    "Stitch",
+                    "Tinker Bell",
+                    "Peter Pan",
+                    "Captain Hook",
+                    "Cruella de Vil",
+                    "Maleficent",
+                    "Ursula",
+                    "Gaston",
+                    "Jafar",
+                    "Shere Khan",
+                    "Yzma (Emperor's New Groove)",
+                    "Kuzco (Emperor's New Groove)",
+                    "Linguini (Ratatouille)",
+                    "Remy (Ratatouille)",
+                    "WALL-E",
+                    "EVE (WALL-E)",
+                    "Joy (Inside Out)",
+                    "Sadness (Inside Out)",
+                    "Anger (Inside Out)",
+                    "Miguel (Coco)",
+                    "Hector (Coco)",
+                    "Edna Mode",
+                    "Syndrome",
+                    "Frozone",
+                    "Bob Parr (Mr. Incredible)",
+                    "Dash Parr",
+                    "Violet Parr",
+                    "Roz (Monsters Inc)",
+                    "Mike Wazowski",
+                    "Sulley",
+                    "Boo (Monsters Inc)",
+                    "Randall (Monsters Inc)",
+                    "Rex (Toy Story)",
+                    "Hamm (Toy Story)",
+                    "Slinky Dog",
+                    "Woody",
+                    "Jessie (Toy Story)",
+                    "Bo Peep",
+                    "Sid (Toy Story)",
+                    "Lotso",
+                    "Ken (Toy Story)",
+                    "Barbie (Toy Story)",
+                    "Puss in Boots",
+                    "Fiona (Shrek)",
+                    "Lord Farquaad",
+                    "Rumpelstiltskin",
+                    "Hiccup (How to Train Your Dragon)",
+                    "Toothless",
+                    "Astrid (How to Train Your Dragon)",
+                    "Alex (Madagascar)",
+                    "Marty (Madagascar)",
+                    "Gloria (Madagascar)",
+                    "Melman (Madagascar)",
+                    "King Julien",
+                    "Skipper (Madagascar)"
+                ];
+                // Save default characters to Firebase
+                await database.ref('characters').set(characters);
+            }
+            
+            console.log('Loaded', characters.length, 'characters from Firebase');
+        }
+        
+        // Call this on page load
+        loadCharacters();
 
         // Game State
         let currentRoom = null;
@@ -1466,47 +1570,86 @@
         }
 
         // Character Management
+        async function addNewCharacter() {
+            const input = document.getElementById('newCharacterName');
+            const characterName = input.value.trim();
+            
+            if (!characterName) {
+                alert('Please enter a character name');
+                return;
+            }
+            
+            // Check if character already exists
+            if (characters.includes(characterName)) {
+                alert('This character already exists!');
+                return;
+            }
+            
+            // Add to local array
+            characters.push(characterName);
+            
+            // Save to Firebase
+            await database.ref('characters').set(characters);
+            
+            // Clear input
+            input.value = '';
+            
+            // Refresh the modal
+            openCharacterModal();
+        }
+        
+        async function deleteCharacter(characterName, index) {
+            if (!confirm(`Are you sure you want to permanently delete "${characterName}"? This will also delete their image.`)) {
+                return;
+            }
+            
+            // Remove from local array
+            characters.splice(index, 1);
+            
+            // Save updated array to Firebase
+            await database.ref('characters').set(characters);
+            
+            // Also delete the character's image
+            await database.ref('characterImages/' + characterName).remove();
+            
+            // Refresh the modal
+            openCharacterModal();
+        }
+        
         async function openCharacterModal() {
             const modal = document.getElementById('characterModal');
             modal.classList.add('active');
             
             const container = document.getElementById('characterImageInputs');
-            container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-medium);">Loading characters...</div>';
+            container.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-medium);">Loading ${characters.length} characters...</div>`;
 
             // Small delay to show modal immediately
             await new Promise(resolve => setTimeout(resolve, 10));
 
             container.innerHTML = '';
 
+            console.log('Total characters:', characters.length);
+
             for (let i = 0; i < characters.length; i++) {
                 const character = characters[i];
-                const characterImagesRef = database.ref('characterImages/' + character);
-                const snapshot = await characterImagesRef.once('value');
-                const existingImage = snapshot.val();
-
+                
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'character-list-item';
                 
+                // Add delete button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-character-btn';
+                deleteBtn.innerHTML = '×';
+                deleteBtn.title = 'Delete character';
+                deleteBtn.onclick = function() {
+                    deleteCharacter(character, i);
+                };
+                itemDiv.appendChild(deleteBtn);
+                
                 const previewContainer = document.createElement('div');
                 previewContainer.className = 'preview-container';
-                previewContainer.id = `preview-${character.replace(/[^a-zA-Z0-9]/g, '')}-${i}`;
-                
-                if (existingImage) {
-                    const img = document.createElement('img');
-                    img.src = existingImage;
-                    img.onerror = function() {
-                        this.parentElement.innerHTML = '<div class="preview-placeholder">?</div>';
-                    };
-                    previewContainer.appendChild(img);
-                    
-                    const uploadStatus = document.createElement('div');
-                    uploadStatus.className = 'upload-status';
-                    uploadStatus.textContent = '✓';
-                    uploadStatus.title = 'Image uploaded';
-                    previewContainer.appendChild(uploadStatus);
-                } else {
-                    previewContainer.innerHTML = '<div class="preview-placeholder">?</div>';
-                }
+                previewContainer.id = `preview-${i}`;
+                previewContainer.innerHTML = '<div class="preview-placeholder">?</div>';
                 
                 itemDiv.appendChild(previewContainer);
                 
@@ -1518,7 +1661,6 @@
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.placeholder = 'Paste image URL';
-                input.value = existingImage || '';
                 input.dataset.character = character;
                 input.dataset.index = i;
                 input.onchange = function() {
@@ -1528,6 +1670,35 @@
                 
                 container.appendChild(itemDiv);
             }
+
+            // Now load images asynchronously after all cards are displayed
+            for (let i = 0; i < characters.length; i++) {
+                const character = characters[i];
+                const characterImagesRef = database.ref('characterImages/' + character);
+                characterImagesRef.once('value').then(snapshot => {
+                    const existingImage = snapshot.val();
+                    const previewContainer = document.getElementById(`preview-${i}`);
+                    const input = document.querySelector(`input[data-index="${i}"]`);
+                    
+                    if (existingImage && previewContainer) {
+                        input.value = existingImage;
+                        
+                        const img = document.createElement('img');
+                        img.src = existingImage;
+                        img.onerror = function() {
+                            this.parentElement.innerHTML = '<div class="preview-placeholder">?</div>';
+                        };
+                        previewContainer.innerHTML = '';
+                        previewContainer.appendChild(img);
+                        
+                        const uploadStatus = document.createElement('div');
+                        uploadStatus.className = 'upload-status';
+                        uploadStatus.textContent = '✓';
+                        uploadStatus.title = 'Image uploaded';
+                        previewContainer.appendChild(uploadStatus);
+                    }
+                });
+            }
         }
 
         function closeCharacterModal() {
@@ -1535,8 +1706,7 @@
         }
 
         async function saveCharacterImage(characterName, imageUrl, index) {
-            const cleanName = characterName.replace(/[^a-zA-Z0-9]/g, '');
-            const previewContainer = document.getElementById(`preview-${cleanName}-${index}`);
+            const previewContainer = document.getElementById(`preview-${index}`);
             
             if (imageUrl) {
                 // Test if image loads
