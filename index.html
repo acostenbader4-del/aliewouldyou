@@ -1779,7 +1779,15 @@
                 input.placeholder = 'Paste image URL';
                 input.dataset.character = character;
                 input.dataset.index = i;
-                input.onchange = function() {
+                input.oninput = function() {
+                    saveCharacterImage(this.dataset.character, this.value, this.dataset.index);
+                };
+                input.onkeypress = function(e) {
+                    if (e.key === 'Enter') {
+                        saveCharacterImage(this.dataset.character, this.value, this.dataset.index);
+                    }
+                };
+                input.onblur = function() {
                     saveCharacterImage(this.dataset.character, this.value, this.dataset.index);
                 };
                 itemDiv.appendChild(input);
@@ -1837,6 +1845,8 @@
         }
 
         async function saveCharacterImage(characterName, imageUrl, index) {
+            console.log('saveCharacterImage called:', { characterName, imageUrl, index });
+            
             const previewContainer = document.getElementById(`preview-${index}`);
             
             if (!previewContainer) {
@@ -1844,49 +1854,57 @@
                 return;
             }
             
-            if (imageUrl) {
-                // Test if image loads
-                const testImg = new Image();
-                testImg.onload = async function() {
-                    // Save current scroll position
-                    const modalContent = document.querySelector('.modal-content');
-                    const scrollPosition = modalContent ? modalContent.scrollTop : 0;
-                    
-                    await database.ref('characterImages/' + characterName).set(imageUrl);
-                    
-                    // Update preview
-                    previewContainer.innerHTML = '';
-                    const img = document.createElement('img');
-                    img.src = imageUrl;
-                    previewContainer.appendChild(img);
-                    
-                    const uploadStatus = document.createElement('div');
-                    uploadStatus.className = 'upload-status';
-                    uploadStatus.textContent = '✓';
-                    uploadStatus.title = 'Image uploaded successfully';
-                    previewContainer.appendChild(uploadStatus);
-                    
-                    // Briefly highlight the card
-                    const card = previewContainer.parentElement;
-                    card.style.border = '2px solid #00ff88';
-                    setTimeout(() => {
-                        card.style.border = '2px solid var(--pink-soft)';
-                    }, 1000);
-                    
-                    // Restore scroll position
-                    if (modalContent) {
-                        modalContent.scrollTop = scrollPosition;
-                    }
-                };
-                testImg.onerror = function() {
-                    alert('Failed to load image. Please check the URL.');
-                    previewContainer.innerHTML = '<div class="preview-placeholder">❌</div>';
-                };
-                testImg.src = imageUrl;
-            } else {
-                await database.ref('characterImages/' + characterName).remove();
-                previewContainer.innerHTML = '<div class="preview-placeholder">?</div>';
+            // Don't process if URL is empty or hasn't changed
+            const trimmedUrl = imageUrl ? imageUrl.trim() : '';
+            if (!trimmedUrl) {
+                console.log('Empty URL, skipping');
+                return;
             }
+            
+            console.log('Processing URL:', trimmedUrl);
+            
+            // Test if image loads
+            const testImg = new Image();
+            testImg.onload = async function() {
+                console.log('Image loaded successfully');
+                
+                // Save current scroll position
+                const modalContent = document.querySelector('.modal-content');
+                const scrollPosition = modalContent ? modalContent.scrollTop : 0;
+                
+                await database.ref('characterImages/' + characterName).set(trimmedUrl);
+                console.log('Saved to Firebase');
+                
+                // Update preview
+                previewContainer.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = trimmedUrl;
+                previewContainer.appendChild(img);
+                
+                const uploadStatus = document.createElement('div');
+                uploadStatus.className = 'upload-status';
+                uploadStatus.textContent = '✓';
+                uploadStatus.title = 'Image uploaded successfully';
+                previewContainer.appendChild(uploadStatus);
+                
+                // Briefly highlight the card
+                const card = previewContainer.parentElement;
+                card.style.border = '2px solid #00ff88';
+                setTimeout(() => {
+                    card.style.border = '2px solid var(--pink-soft)';
+                }, 1000);
+                
+                // Restore scroll position
+                if (modalContent) {
+                    modalContent.scrollTop = scrollPosition;
+                }
+            };
+            testImg.onerror = function() {
+                console.error('Image failed to load');
+                alert('Failed to load image. Please check the URL.');
+                previewContainer.innerHTML = '<div class="preview-placeholder">❌</div>';
+            };
+            testImg.src = trimmedUrl;
         }
 
         // Close modal on outside click
